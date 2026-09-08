@@ -1,804 +1,305 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0d1117">
-<title>HVAC/R Compressor Engine V0.2</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0f14">
+<title>HVAC/R Compressor Engine V0.3</title>
 <style>
 :root{
-  --bg:#0d1117;--p:#151b23;--p2:#1b232d;--line:#2b3642;
-  --txt:#edf2f7;--muted:#9eabb8;--a:#6cb6ff;--ok:#69d18f;
-  --warn:#f4c76a;--bad:#ff7777;
+  --bg:#0b0f14;--panel:#121923;--panel2:#0e151e;--line:#263342;
+  --text:#edf3f8;--muted:#9aa9b7;--accent:#58c7ff;--ok:#4ade80;
+  --warn:#facc15;--bad:#fb7185;--shadow:0 12px 30px rgba(0,0,0,.28)
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:14px Inter,Segoe UI,Arial,sans-serif}
-body.epaper{
-  --bg:#f2f0e7;--p:#faf9f3;--p2:#ece9df;--line:#aaa79e;
-  --txt:#171717;--muted:#5e5b55;--a:#174d73;--ok:#24683f;--warn:#8a6200;--bad:#8a2727
-}
-button,input,select{font:inherit}
-button{cursor:pointer}
-.app{max-width:1200px;margin:auto;padding:12px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-.brand{display:flex;gap:10px;align-items:center}
-.logo{width:42px;height:42px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;background:var(--p);font-weight:900;color:var(--a)}
-h1{font-size:18px;margin:0}
-.sub,.mini,label{color:var(--muted);font-size:10px}
-.tools{display:flex;gap:6px}
-.btn{border:1px solid var(--line);background:var(--p);color:var(--txt);border-radius:8px;padding:8px 11px}
-.primary{background:var(--a);color:#06111d;border:0;font-weight:800}
-.primary:disabled{opacity:.55;cursor:wait}
-.layout{display:grid;grid-template-columns:350px 1fr;gap:12px}
-.card{background:var(--p);border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:12px}
-h2{font-size:13px;margin:0 0 10px}
-h3{font-size:11px;margin:0 0 8px}
-.tabs{display:flex;gap:5px;margin-bottom:9px}
-.tab{flex:1;padding:7px 4px;font-size:10px}
-.tab.active{border-color:var(--a);color:var(--a)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.field{display:flex;flex-direction:column;gap:5px}
-.full{grid-column:1/-1}
-input,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--p2);color:var(--txt);outline:0}
-input:focus,select:focus{border-color:var(--a)}
-.search{display:flex;gap:6px}
-.search input{flex:1}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{padding:18px 16px 12px;position:sticky;top:0;background:rgba(11,15,20,.94);backdrop-filter:blur(12px);z-index:5;border-bottom:1px solid var(--line)}
+h1{font-size:22px;margin:0 0 4px}.sub{font-size:12px;color:var(--muted)}
+main{max-width:1100px;margin:auto;padding:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px}
+input,select{width:100%;background:#0b1118;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px;font-size:15px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+button{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer}
+.primary{background:var(--accent);color:#061018}.secondary{background:#1b2633;color:var(--text);border:1px solid var(--line)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.status{padding:9px 11px;border-radius:9px;background:#0b1118;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+.status.ok{border-color:rgba(74,222,128,.4);color:var(--ok)}
+.status.bad{border-color:rgba(251,113,133,.4);color:var(--bad)}
+.status.warn{border-color:rgba(250,204,21,.4);color:var(--warn)}
+h2{font-size:16px;margin:0 0 10px} h3{font-size:14px;margin:12px 0 7px}
+.mini{font-size:12px;color:var(--muted)}
+.result{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:11px;margin-top:8px}
+.result a{color:var(--accent);font-weight:700;text-decoration:none}.result a:hover{text-decoration:underline}
+.badge{display:inline-block;font-size:10px;padding:3px 7px;border-radius:999px;background:#1b2633;color:#c8d5df;margin-right:5px}
+.badge.official{color:#86efac;border:1px solid rgba(74,222,128,.3)}
+.badge.pdf{color:#fbbf24;border:1px solid rgba(250,204,21,.3)}
+.snippet{font-size:12px;color:#c1ccd5;line-height:1.45;margin-top:7px}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.kv div{background:#0b1118;border:1px solid var(--line);border-radius:8px;padding:8px}
+.k{display:block;font-size:10px;color:var(--muted)}.v{font-size:13px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:7px;text-align:left;vertical-align:top}th{color:var(--muted)}
 .hidden{display:none!important}
-.status{margin-top:9px;display:flex;gap:6px;align-items:center;color:var(--muted);font-size:10px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
-.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
-.empty{min-height:380px;display:grid;place-items:center;text-align:center;color:var(--muted)}
-.empty strong{display:block;color:var(--txt);margin-bottom:5px}
-.hero{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.model{font-size:20px;font-weight:800}
-.maker{color:var(--muted);font-size:11px;margin-top:3px}
-.badge{border:1px solid var(--line);border-radius:20px;padding:5px 8px;font-size:9px;color:var(--ok);white-space:nowrap}
-.badge.warn{color:var(--warn)}.badge.bad{color:var(--bad)}
-.specs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
-.spec{background:var(--p2);border:1px solid var(--line);border-radius:8px;padding:9px}
-.k{font-size:8px;color:var(--muted)}.v{font-size:12px;font-weight:700;margin-top:3px;overflow-wrap:anywhere}
-.section{border-top:1px solid var(--line);margin-top:13px;padding-top:12px}
-.table{width:100%;border-collapse:collapse;font-size:10px}
-.table th,.table td{padding:7px 5px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.table th{font-size:8px;color:var(--muted)}
-.alert{border:1px solid var(--line);border-radius:8px;padding:9px;font-size:10px;margin-top:8px;line-height:1.45}
-.alert.ok{border-color:var(--ok)}.alert.warn{border-color:var(--warn)}.alert.bad{border-color:var(--bad)}
-.sources div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:7px 0;font-size:10px}
-.sources a{color:var(--a);text-decoration:none}
-.historyrow{display:flex;justify-content:space-between;gap:6px;border-bottom:1px solid var(--line);padding:7px 0;font-size:10px}
-.historyrow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.smallbtn{padding:5px 7px;font-size:9px}
-.loading{display:inline-flex;align-items:center;gap:7px}
-.spinner{width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--a);border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.tag{display:inline-block;border:1px solid var(--line);border-radius:12px;padding:3px 7px;margin:2px 3px 2px 0;font-size:9px}
-.drop{border:1px dashed var(--line);border-radius:8px;padding:14px;text-align:center;color:var(--muted)}
-.photo-preview{max-width:100%;max-height:220px;border-radius:8px;margin-top:8px;display:block}
-.config{font-size:9px;color:var(--muted);word-break:break-all}
-@media(max-width:850px){
-  .layout{grid-template-columns:1fr}
-  .specs{grid-template-columns:1fr 1fr}
-}
-@media(max-width:520px){
-  .app{padding:8px}.top{align-items:flex-start}
-  .top .tools{flex-direction:column}
-  .specs{grid-template-columns:1fr 1fr}
-  .grid{grid-template-columns:1fr 1fr}
-}
+.epaper{--bg:#e7e2d2;--panel:#f3efe2;--panel2:#ebe6d7;--line:#b5ad98;--text:#222;--muted:#655f54;--accent:#1769aa;--ok:#18733a;--warn:#8a6500;--bad:#a11}
+.epaper header{background:rgba(231,226,210,.94)}
+.epaper input,.epaper select,.epaper .status,.epaper .kv div{background:#f8f4e8;color:#222}
+@media(max-width:700px){.grid,.grid3,.kv{grid-template-columns:1fr}.row button{width:100%}header{position:static}}
 </style>
 </head>
 <body>
-<div class="app">
-
-<header class="top">
-  <div class="brand">
-    <div class="logo">C</div>
-    <div>
-      <h1>HVAC/R Compressor Engine</h1>
-      <div class="sub">V0.2 · búsqueda web real · ficha técnica · envelope · ASHRAE</div>
-    </div>
-  </div>
-  <div class="tools">
-    <button class="btn" id="theme">ePaper</button>
-  </div>
+<header>
+  <h1>HVAC/R Compressor Engine</h1>
+  <div class="sub">V0.3 · búsqueda web automática · referencias · ficha técnica · envelope · ASHRAE</div>
 </header>
 
-<div class="layout">
-
-<aside>
-
-<section class="card">
-  <h2>Buscar compresor</h2>
-
-  <div class="tabs">
-    <button class="btn tab active" data-tab="model">Modelo</button>
-    <button class="btn tab" data-tab="spec">Especificaciones</button>
-    <button class="btn tab" data-tab="photo">Foto / placa</button>
-  </div>
-
-  <div id="model">
-    <label>Código / modelo</label>
-    <div class="search">
-      <input id="q" placeholder="Ej. PA118M1C-3FZU" autocomplete="off">
-      <button class="btn primary" id="go" title="Buscar">🔍</button>
-    </div>
-    <div class="mini" style="margin-top:7px">
-      La consulta se envía al backend seguro de Render. La clave Gemini nunca está en este HTML.
-    </div>
-  </div>
-
-  <div id="spec" class="hidden">
-    <div class="grid">
-      <div class="field">
-        <label>Refrigerante</label>
-        <select id="ref">
-          <option value="">Cualquiera</option>
-          <option>R410A</option><option>R32</option><option>R134a</option>
-          <option>R22</option><option>R404A</option><option>R407C</option>
-          <option>R507A</option><option>R290</option><option>R600a</option>
-        </select>
+<main>
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2>Conexión</h2>
+        <div class="mini">El navegador nunca contiene la clave de Tavily ni la de Gemini.</div>
       </div>
-      <div class="field">
+      <button id="themeBtn" class="secondary">ePaper</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span id="health" class="status">Comprobando backend…</span>
+      <span id="provider" class="status">Proveedor: —</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Buscar compresor</h2>
+    <div class="grid">
+      <div>
+        <label>Código / modelo exacto</label>
+        <input id="model" placeholder="Ej.: QD75H" autocomplete="off">
+      </div>
+      <div>
+        <label>Refrigerante (opcional)</label>
+        <input id="refrigerant" placeholder="Ej.: R134a">
+      </div>
+      <div>
         <label>Aplicación</label>
-        <select id="app">
-          <option value="">Cualquiera</option>
+        <select id="application">
+          <option value="">Automática</option>
           <option>LBP</option><option>MBP</option><option>HBP</option>
           <option>HMBP</option><option>CBP</option><option>A/C</option>
         </select>
       </div>
-      <div class="field">
-        <label>Capacidad BTU/h</label>
-        <input id="cap" type="number" placeholder="12000">
-      </div>
-      <div class="field">
-        <label>Voltaje</label>
-        <input id="volt" placeholder="208-230 V">
-      </div>
-      <div class="field">
-        <label>Evaporación °C</label>
-        <input id="te" type="number" step="0.1" placeholder="5">
-      </div>
-      <div class="field">
-        <label>Condensación °C</label>
-        <input id="tc" type="number" step="0.1" placeholder="50">
-      </div>
-    </div>
-    <button class="btn primary" style="width:100%;margin-top:9px" id="specGo">
-      Buscar candidatos
-    </button>
-  </div>
-
-  <div id="photo" class="hidden">
-    <div class="alert">
-      <b>📷 Placa del compresor</b><br>
-      V0.2 permite seleccionar y previsualizar la foto. El OCR automático requiere ampliar el endpoint del backend para recibir imagen.
-      No se enviará la foto a Gemini desde este HTML hasta que ese endpoint esté implementado.
-    </div>
-    <input id="photoIn" type="file" accept="image/*" capture="environment" style="margin-top:8px;width:100%">
-    <img id="photoPreview" class="photo-preview hidden" alt="Vista previa de placa">
-    <button class="btn" id="clearPhoto" style="width:100%;margin-top:7px">Limpiar foto</button>
-  </div>
-
-  <div class="status">
-    <span class="dot" id="dot"></span>
-    <span id="status">API no probada todavía</span>
-  </div>
-</section>
-
-<section class="card">
-  <h2>Últimas búsquedas</h2>
-  <div id="hist" class="mini">Todavía no hay búsquedas.</div>
-  <button class="btn smallbtn" id="clearHist" style="margin-top:8px">Borrar historial</button>
-</section>
-
-<section class="card">
-  <h2>Conexión</h2>
-  <div class="config">Backend: <span id="apiLabel"></span></div>
-  <div style="margin-top:8px">
-    <button class="btn smallbtn" id="testApi">Probar API</button>
-  </div>
-</section>
-
-</aside>
-
-<main>
-
-<section class="card">
-  <div id="empty" class="empty">
-    <div>
-      <div style="font-size:30px">◈</div>
-      <strong>Motor de especificaciones</strong>
-      Introduzca un modelo o busque por características.<br>
-      La información recuperada mostrará fuentes, conflictos, envelope y condiciones ASHRAE.
-    </div>
-  </div>
-
-  <div id="result" class="hidden">
-
-    <div class="hero">
       <div>
-        <div class="model" id="rmodel">—</div>
-        <div class="maker" id="rmaker">—</div>
+        <label>Capacidad BTU/h (opcional)</label>
+        <input id="capacity" type="number" placeholder="Ej.: 12000">
       </div>
-      <span class="badge" id="conf">CONF. —</span>
-    </div>
-
-    <div class="specs">
-      <div class="spec"><div class="k">REFRIGERANTE</div><div class="v" id="rref">—</div></div>
-      <div class="spec"><div class="k">APLICACIÓN</div><div class="v" id="rapp">—</div></div>
-      <div class="spec"><div class="k">TIPO</div><div class="v" id="rtype">—</div></div>
-      <div class="spec"><div class="k">CAPACIDAD</div><div class="v" id="rcap">—</div></div>
-      <div class="spec"><div class="k">DESPLAZAMIENTO</div><div class="v" id="rdisp">—</div></div>
-      <div class="spec"><div class="k">VOLTAJE</div><div class="v" id="rvolt">—</div></div>
-      <div class="spec"><div class="k">FRECUENCIA / FASE</div><div class="v" id="rfreq">—</div></div>
-      <div class="spec"><div class="k">RLA / LRA</div><div class="v" id="rrla">—</div></div>
-      <div class="spec"><div class="k">POTENCIA</div><div class="v" id="rpower">—</div></div>
-      <div class="spec"><div class="k">COP</div><div class="v" id="rcop">—</div></div>
-      <div class="spec"><div class="k">ACEITE</div><div class="v" id="roil">—</div></div>
-      <div class="spec"><div class="k">CAPACITOR</div><div class="v" id="rcapacitor">—</div></div>
-    </div>
-
-    <div class="section">
-      <h2>Envelope / aplicación</h2>
-      <table class="table">
-        <tbody>
-          <tr><th>Clase de aplicación</th><td id="eapp">—</td></tr>
-          <tr><th>Evaporación publicada</th><td id="eevap">—</td></tr>
-          <tr><th>Condensación publicada</th><td id="econd">—</td></tr>
-          <tr><th>T. descarga máxima</th><td id="edis">—</td></tr>
-          <tr><th>Relación de presión máx.</th><td id="epr">—</td></tr>
-        </tbody>
-      </table>
-      <div class="alert" id="enote">Sin evaluación.</div>
-    </div>
-
-    <div class="section">
-      <h2>Evaluación de la condición actual</h2>
-      <div id="operating"></div>
-    </div>
-
-    <div class="section">
-      <h2>Puntos del envelope publicados</h2>
-      <div id="points" class="mini">Sin puntos cargados.</div>
-    </div>
-
-    <div class="section">
-      <h2>Condiciones ASHRAE</h2>
-      <div class="mini" style="margin-bottom:6px">
-        Estos valores son puntos de ensayo/rating publicados; no se interpretan automáticamente como límites del envelope.
+      <div>
+        <label>Voltaje (opcional)</label>
+        <input id="voltage" placeholder="Ej.: 115 V">
       </div>
-      <div id="ashrae" class="mini">Sin puntos cargados.</div>
-    </div>
-
-    <div class="section" id="conflictsSection">
-      <h2>Conflictos entre fuentes</h2>
-      <div id="conflicts" class="mini">No registrados.</div>
-    </div>
-
-    <div class="section">
-      <h2>Resumen técnico</h2>
-      <div class="alert" id="summary">—</div>
-      <div class="alert" id="testConditions">Condiciones de prueba: —</div>
-    </div>
-
-    <div class="section">
-      <h2>Fuentes</h2>
-      <div id="sources" class="sources"><div class="mini">Las fuentes aparecerán aquí.</div></div>
-    </div>
-
-    <div class="section">
-      <div class="alert">
-        🟡 <b>Uso técnico:</b> esta ficha es una recuperación de información publicada.
-        No declara por sí sola equivalencia, reemplazo autorizado ni compatibilidad final.
+      <div>
+        <label>Condición de evaporación °C (opcional)</label>
+        <input id="tevap" type="number" step="0.1" placeholder="Ej.: -10">
+      </div>
+      <div>
+        <label>Condición de condensación °C (opcional)</label>
+        <input id="tcond" type="number" step="0.1" placeholder="Ej.: 45">
       </div>
     </div>
+    <div class="row" style="margin-top:12px">
+      <button id="searchBtn" class="primary">Buscar automáticamente</button>
+      <button id="clearBtn" class="secondary">Limpiar</button>
+    </div>
+    <div id="message" class="mini" style="margin-top:9px"></div>
+  </section>
 
-  </div>
-</section>
+  <section id="refsCard" class="card hidden">
+    <h2>Referencias encontradas automáticamente</h2>
+    <div id="refs"></div>
+  </section>
 
+  <section id="recordCard" class="card hidden">
+    <h2>Ficha técnica consolidada</h2>
+    <div id="record"></div>
+  </section>
+
+  <section id="envelopeCard" class="card hidden">
+    <h2>Envelope / aplicación</h2>
+    <div id="envelope"></div>
+  </section>
+
+  <section id="conflictsCard" class="card hidden">
+    <h2>Conflictos entre fuentes</h2>
+    <div id="conflicts"></div>
+  </section>
+
+  <section id="sourcesCard" class="card hidden">
+    <h2>Fuentes utilizadas por el análisis</h2>
+    <div id="sources"></div>
+  </section>
+
+  <section class="card">
+    <h2>Historial local</h2>
+    <div id="history" class="mini">Sin búsquedas guardadas.</div>
+  </section>
 </main>
-</div>
-
-<div class="sub" style="text-align:center;padding:8px">
-  HVAC/R Compressor Engine V0.2 · Frontend conectado a API Render
-</div>
-</div>
 
 <script>
-/* =========================================================
-   HVAC/R COMPRESSOR ENGINE V0.2
-   Backend esperado:
-   POST https://hvacr-compressor-engine.onrender.com/api/compressor-search
-   ========================================================= */
+const API = window.COMPRESSOR_SEARCH_API || "https://hvacr-compressor-engine.onrender.com/api/compressor-search";
+const HEALTH = API.replace(/\/api\/compressor-search$/, "/health");
 
-const API_BASE =
-  window.COMPRESSOR_SEARCH_API ||
-  "https://hvacr-compressor-engine.onrender.com";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const val = id => $(id).value.trim();
 
-const SEARCH_URL = API_BASE.replace(/\/+$/,"") + "/api/compressor-search";
-const HEALTH_URL = API_BASE.replace(/\/+$/,"") + "/health";
-
-document.getElementById("apiLabel").textContent = API_BASE;
-
-const db = {
-  "PA118M1C-3FZU": {
-    found:true,
-    manufacturer:"GMCC",
-    model:"PA118M1C-3FZU",
-    refrigerant:"R410A",
-    type:"Rotary",
-    voltage:"208–230 V",
-    frequency:"60 Hz",
-    phase:"1",
-    capacity_kW:3.39,
-    capacity_BTUh:11567,
-    displacement_cm3_rev:11.8,
-    RLA_A:5.4,
-    LRA_A:28,
-    power_kW:1.125,
-    COP:3.01,
-    oil:"—",
-    capacitor:"35 µF",
-    confidence:"ALTA / parcial",
-    application_envelope:"HBP / Air Conditioning",
-    test_conditions:"ASHRAE: Tevap 7.2 °C; Tcond 54.4 °C; retorno 35 °C; líquido 46 °C; ambiente 35 °C.",
-    envelope:{
-      application_class:"HBP / Air Conditioning",
-      evap_min_C:null,evap_max_C:null,
-      cond_min_C:null,cond_max_C:null,
-      max_discharge_C:null,max_pressure_ratio:null,
-      notes:"Envelope completo no disponible en la ficha local inicial.",
-      points:[],
-      ashrae_tests:[{
-        Tevap_C:7.2,Tcond_C:54.4,Treturn_C:35,Tliquid_C:46,ambient_C:35
-      }]
-    },
-    conflicts:[
-      "Capacidad publicada encontrada en distintas fuentes: aproximadamente 11,567 a 11,703 BTU/h."
-    ],
-    sources:[{
-      name:"GMCC — ficha oficial del modelo",
-      url:"https://gmcccompressors.com/products/gmcc-rotary-compressor-pa118m1c-3fzu",
-      type:"manufacturer"
-    }]
-  }
-};
-
-let history = JSON.parse(localStorage.getItem("ceHistV02") || "[]");
-let currentData = null;
-let currentRequest = 0;
-
-function esc(x){
-  return String(x ?? "").replace(/[&<>"']/g,m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+function setMessage(text, cls="") {
+  $("message").textContent = text;
+  $("message").className = "mini " + cls;
 }
 
-function num(x){
-  return x !== null && x !== undefined && x !== "" && Number.isFinite(Number(x))
-    ? Number(x) : null;
+function sourceBadge(r){
+  const t = (r.source_type || "").toLowerCase();
+  if(t.includes("official") || t.includes("manufacturer")) return '<span class="badge official">FABRICANTE / OFICIAL</span>';
+  if(t.includes("pdf")) return '<span class="badge pdf">PDF / DATASHEET</span>';
+  if(t.includes("catalog")) return '<span class="badge">CATÁLOGO</span>';
+  if(t.includes("distributor")) return '<span class="badge">DISTRIBUIDOR</span>';
+  return '<span class="badge">WEB</span>';
 }
 
-function fmt(x,dec=1){
-  const n=num(x);
-  return n===null ? "—" : n.toLocaleString("es-ES",{maximumFractionDigits:dec});
+function renderReferences(items){
+  $("refsCard").classList.remove("hidden");
+  $("refs").innerHTML = items.length ? items.map((r,i)=>`
+    <article class="result">
+      ${sourceBadge(r)}
+      <span class="badge">#${i+1}</span>
+      <div style="margin-top:6px"><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.title || r.url)}</a></div>
+      <div class="mini">${esc(r.domain || "")}${r.query ? " · consulta: " + esc(r.query) : ""}</div>
+      <div class="snippet">${esc(r.snippet || "")}</div>
+    </article>
+  `).join("") : '<div class="mini">No se encontraron referencias.</div>';
 }
 
-function rangeText(min,max,unit="°C"){
-  const a=num(min),b=num(max);
-  if(a===null && b===null) return "No publicado";
-  if(a!==null && b!==null) return `${fmt(a)} a ${fmt(b)} ${unit}`;
-  if(a!==null) return `≥ ${fmt(a)} ${unit}`;
-  return `≤ ${fmt(b)} ${unit}`;
+function renderRecord(d){
+  $("recordCard").classList.remove("hidden");
+  const fields = [
+    ["Modelo",d.model],["Fabricante",d.manufacturer],["Refrigerante",d.refrigerant],
+    ["Tipo",d.type],["Voltaje",d.voltage],["Frecuencia",d.frequency],["Fase",d.phase],
+    ["Capacidad kW",d.capacity_kW],["Capacidad BTU/h",d.capacity_BTUh],
+    ["Desplazamiento cm³/rev",d.displacement_cm3_rev],["RLA A",d.RLA_A],["LRA A",d.LRA_A],
+    ["Potencia kW",d.power_kW],["COP",d.COP],["Aceite",d.oil],["Capacitor",d.capacitor],
+    ["Máx. descarga °C",d.max_discharge_C]
+  ];
+  $("record").innerHTML = `
+    <div class="kv">${fields.map(x=>`<div><span class="k">${esc(x[0])}</span><span class="v">${esc(x[1] || "—")}</span></div>`).join("")}</div>
+    ${d.summary ? `<h3>Resumen</h3><div class="snippet">${esc(d.summary)}</div>` : ""}
+    ${d.test_conditions ? `<h3>Condiciones de prueba publicadas</h3><div class="snippet">${esc(d.test_conditions)}</div>` : ""}
+  `;
 }
 
-function setStatus(text,type=""){
-  document.getElementById("status").textContent=text;
-  const d=document.getElementById("dot");
-  d.className="dot"+(type?" "+type:"");
+function renderEnvelope(e){
+  if(!e){$("envelopeCard").classList.add("hidden");return}
+  $("envelopeCard").classList.remove("hidden");
+  const rows = [
+    ["Aplicación",e.application_class],
+    ["Tevap mín. °C",e.evap_min_C],["Tevap máx. °C",e.evap_max_C],
+    ["Tcond mín. °C",e.cond_min_C],["Tcond máx. °C",e.cond_max_C],
+    ["Máx. descarga °C",e.max_discharge_C],["Máx. relación de presión",e.max_pressure_ratio],
+    ["Estado actual",e.status],["Nota",e.notes]
+  ];
+  $("envelope").innerHTML = `
+    <div class="kv">${rows.map(x=>`<div><span class="k">${esc(x[0])}</span><span class="v">${esc(x[1] || "—")}</span></div>`).join("")}</div>
+    ${Array.isArray(e.points)&&e.points.length ? `<h3>Puntos de envelope publicados</h3><table><thead><tr><th>Tevap °C</th><th>Tcond °C</th><th>Nota</th></tr></thead><tbody>${e.points.map(p=>`<tr><td>${esc(p.Tevap_C)}</td><td>${esc(p.Tcond_C)}</td><td>${esc(p.note)}</td></tr>`).join("")}</tbody></table>`:""}
+    ${Array.isArray(e.ashrae_tests)&&e.ashrae_tests.length ? `<h3>Puntos ASHRAE publicados</h3><table><thead><tr><th>Tevap</th><th>Tcond</th><th>Retorno</th><th>Líquido</th><th>Amb.</th><th>Nota</th></tr></thead><tbody>${e.ashrae_tests.map(p=>`<tr><td>${esc(p.Tevap_C)}</td><td>${esc(p.Tcond_C)}</td><td>${esc(p.Treturn_C)}</td><td>${esc(p.Tliquid_C)}</td><td>${esc(p.ambient_C)}</td><td>${esc(p.note)}</td></tr>`).join("")}</tbody></table>`:""}
+  `;
 }
 
-function saveHistory(label){
-  label=String(label||"").trim();
-  if(!label)return;
-  history=[label,...history.filter(x=>x!==label)].slice(0,10);
-  localStorage.setItem("ceHistV02",JSON.stringify(history));
-  renderHist();
+function renderConflicts(arr){
+  if(!Array.isArray(arr)||!arr.length){$("conflictsCard").classList.add("hidden");return}
+  $("conflictsCard").classList.remove("hidden");
+  $("conflicts").innerHTML = arr.map(x=>`<div class="result"><b>${esc(x.field || "Dato")}</b><div class="snippet">${esc(x.description || x)}</div></div>`).join("");
 }
 
-function renderHist(){
-  const el=document.getElementById("hist");
-  if(!history.length){
-    el.textContent="Todavía no hay búsquedas.";
-    return;
-  }
-  el.innerHTML=history.map((x,i)=>`
-    <div class="historyrow">
-      <span title="${esc(x)}">${esc(x)}</span>
-      <button class="btn smallbtn" data-history="${i}">↗</button>
-    </div>
-  `).join("");
-  el.querySelectorAll("[data-history]").forEach(b=>{
-    b.onclick=()=>{
-      const q=history[Number(b.dataset.history)]||"";
-      document.getElementById("q").value=q;
-      activateTab("model");
-      searchModel(q);
-    };
-  });
+function renderSources(arr){
+  if(!Array.isArray(arr)||!arr.length){$("sourcesCard").classList.add("hidden");return}
+  $("sourcesCard").classList.remove("hidden");
+  $("sources").innerHTML = arr.map(x=>`<div class="result">${sourceBadge(x)} <a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.name || x.url)}</a><div class="mini">${esc(x.type || "")}</div></div>`).join("");
 }
 
-function activateTab(name){
-  document.querySelectorAll(".tab").forEach(x=>{
-    x.classList.toggle("active",x.dataset.tab===name);
-  });
-  ["model","spec","photo"].forEach(x=>{
-    document.getElementById(x).classList.toggle("hidden",x!==name);
-  });
+function saveHistory(model, count){
+  const key="hvacr_v03_history";
+  const h=JSON.parse(localStorage.getItem(key)||"[]");
+  h.unshift({model,count,ts:new Date().toLocaleString()});
+  localStorage.setItem(key,JSON.stringify(h.slice(0,20)));
+  renderHistory();
+}
+function renderHistory(){
+  const h=JSON.parse(localStorage.getItem("hvacr_v03_history")||"[]");
+  $("history").innerHTML=h.length ? h.map(x=>`<div class="result"><b>${esc(x.model)}</b> · ${esc(x.count)} referencias · ${esc(x.ts)}</div>`).join("") : "Sin búsquedas guardadas.";
 }
 
-function showLoading(text){
-  document.getElementById("empty").classList.remove("hidden");
-  document.getElementById("result").classList.add("hidden");
-  document.getElementById("empty").innerHTML=`
-    <div class="loading">
-      <span class="spinner"></span>
-      <span>${esc(text)}</span>
-    </div>`;
-}
-
-function showError(message, localFallback=null){
-  document.getElementById("result").classList.add("hidden");
-  document.getElementById("empty").classList.remove("hidden");
-  document.getElementById("empty").innerHTML=`
-    <div>
-      <div style="font-size:30px">⚠</div>
-      <strong>No se pudo completar la búsqueda web</strong>
-      <div style="max-width:520px;margin:auto">${esc(message)}</div>
-      ${localFallback ? `<button class="btn primary" id="localFallback" style="margin-top:12px">Mostrar ficha local</button>` : ""}
-    </div>`;
-  if(localFallback){
-    document.getElementById("localFallback").onclick=()=>render(localFallback,true);
-  }
-}
-
-function appClassFromTevap(te){
-  const t=num(te);
-  if(t===null)return "AUTO / sin clasificar";
-  if(t<=-10)return "LBP";
-  if(t<7.2)return "MBP";
-  return "HBP";
-}
-
-function appCompatible(current,declared){
-  if(!current || current==="AUTO")return true;
-  const s=String(declared||"").toUpperCase();
-  if(!s)return null;
-  if(s.includes(current))return true;
-  if(current==="HBP" && /(AIR CONDITION|A\/C|HVAC|CLIMAT|HBP)/.test(s))return true;
-  if(current==="MBP" && /(MBP|HMBP|COMMERCIAL|MEDIUM)/.test(s))return true;
-  if(current==="LBP" && /LBP/.test(s))return true;
-  return false;
-}
-
-function evaluateEnvelope(d){
-  const env=d.envelope||{};
-  const te=num(document.getElementById("te").value);
-  const tc=num(document.getElementById("tc").value);
-  const app=appClassFromTevap(te);
-  const checks=[];
-
-  if(te!==null){
-    if(num(env.evap_min_C)!==null && te<num(env.evap_min_C))
-      checks.push(["bad","Evaporación por debajo del rango publicado."]);
-    else if(num(env.evap_max_C)!==null && te>num(env.evap_max_C))
-      checks.push(["bad","Evaporación por encima del rango publicado."]);
-    else if(num(env.evap_min_C)!==null || num(env.evap_max_C)!==null)
-      checks.push(["ok","Evaporación dentro del rango publicado."]);
-  }
-
-  if(tc!==null){
-    if(num(env.cond_min_C)!==null && tc<num(env.cond_min_C))
-      checks.push(["warn","Condensación por debajo del rango publicado."]);
-    else if(num(env.cond_max_C)!==null && tc>num(env.cond_max_C))
-      checks.push(["bad","Condensación por encima del rango publicado."]);
-    else if(num(env.cond_min_C)!==null || num(env.cond_max_C)!==null)
-      checks.push(["ok","Condensación dentro del rango publicado."]);
-  }
-
-  const compatible=appCompatible(app,env.application_class||d.application_envelope);
-  if(compatible===false)
-    checks.push(["bad",`Aplicación actual orientativa ${app} no coincide con la aplicación publicada.`]);
-  else if(compatible===true && app!=="AUTO / sin clasificar")
-    checks.push(["ok",`Aplicación actual orientativa: ${app}. Coincide con la clasificación recuperada.`]);
-
-  let cls="warn";
-  let text="Envelope parcialmente conocido o sin límites suficientes para evaluar completamente.";
-
-  if(checks.some(x=>x[0]==="bad")){
-    cls="bad";
-    text="Condición potencialmente fuera del envelope publicado. Revisar ficha del fabricante.";
-  }else if(checks.length && checks.every(x=>x[0]==="ok")){
-    cls="ok";
-    text="Condición actual compatible con los límites publicados recuperados. No sustituye la ficha del fabricante.";
-  }
-
-  return {app,checks,cls,text};
-}
-
-function render(d,fromLocal=false){
-  currentData=d||{};
-  const env=d.envelope||{};
-  const evald=evaluateEnvelope(d);
-
-  const values={
-    rmodel:d.model||"Modelo no confirmado",
-    rmaker:d.manufacturer||"Fabricante no confirmado",
-    rref:d.refrigerant||"—",
-    rapp:d.application_envelope||d.application||"—",
-    rtype:d.type||"—",
-    rcap:d.capacity_BTUh!=null ? `${fmt(d.capacity_BTUh,0)} BTU/h${d.capacity_kW!=null?" · "+fmt(d.capacity_kW,2)+" kW":""}` : (d.capacity_kW!=null?fmt(d.capacity_kW,2)+" kW":"—"),
-    rdisp:d.displacement_cm3_rev!=null?`${fmt(d.displacement_cm3_rev,2)} cm³/rev`:"—",
-    rvolt:d.voltage||"—",
-    rfreq:[d.frequency,d.phase?d.phase+" fase(s)":""].filter(Boolean).join(" · ")||"—",
-    rrla:`${d.RLA_A!=null?fmt(d.RLA_A,2):"—"} A / ${d.LRA_A!=null?fmt(d.LRA_A,1):"—"} A`,
-    rpower:d.power_kW!=null?`${fmt(d.power_kW,3)} kW`:"—",
-    rcop:d.COP!=null?fmt(d.COP,2)+" W/W":"—",
-    roil:d.oil||"—",
-    rcapacitor:d.capacitor||"—",
-    conf:"CONF. "+(d.confidence||"—"),
-    eapp:env.application_class||d.application_envelope||"No publicado",
-    eevap:rangeText(env.evap_min_C,env.evap_max_C),
-    econd:rangeText(env.cond_min_C,env.cond_max_C),
-    edis:env.max_discharge_C!=null?fmt(env.max_discharge_C,1)+" °C":"No publicado",
-    epr:env.max_pressure_ratio!=null?fmt(env.max_pressure_ratio,2):"No publicado",
-    enote:env.notes||"Sin nota de envelope publicada."
-  };
-
-  Object.entries(values).forEach(([id,v])=>{
-    const el=document.getElementById(id);
-    if(el)el.textContent=v;
-  });
-
-  const badge=document.getElementById("conf");
-  badge.className="badge";
-  if(/BAJA|LOW|PARCIAL/i.test(d.confidence||""))badge.classList.add("warn");
-  if(/NO|DESCONOCIDA|UNKNOWN/i.test(d.confidence||""))badge.classList.add("bad");
-
-  document.getElementById("enote").className="alert "+evald.cls;
-  document.getElementById("enote").textContent=evald.text+" "+(env.notes||"");
-
-  const operating=document.getElementById("operating");
-  let opHtml=`<div class="mini">Aplicación orientativa por temperatura de evaporación: <b>${esc(evald.app)}</b></div>`;
-  if(evald.checks.length){
-    opHtml+=evald.checks.map(c=>`<div class="alert ${c[0]}">${esc(c[1])}</div>`).join("");
-  }else{
-    opHtml+=`<div class="alert">Introduzca Tevap y Tcond en la pestaña Especificaciones para evaluar la condición actual.</div>`;
-  }
-  operating.innerHTML=opHtml;
-
-  const pts=Array.isArray(env.points)?env.points:[];
-  document.getElementById("points").innerHTML=pts.length
-    ? `<table class="table"><tr><th>Tevap</th><th>Tcond</th><th>Nota</th></tr>`+
-      pts.map(p=>`<tr><td>${p.Tevap_C!=null?esc(fmt(p.Tevap_C))+" °C":"—"}</td><td>${p.Tcond_C!=null?esc(fmt(p.Tcond_C))+" °C":"—"}</td><td>${esc(p.note||p.notes||"Publicado")}</td></tr>`).join("")+
-      `</table>`
-    : "No hay puntos de envelope suficientemente identificables en la respuesta.";
-
-  const tests=Array.isArray(env.ashrae_tests)&&env.ashrae_tests.length
-    ? env.ashrae_tests
-    : [];
-  document.getElementById("ashrae").innerHTML=tests.length
-    ? `<table class="table"><tr><th>Tevap</th><th>Tcond</th><th>Retorno</th><th>Líquido</th><th>Amb.</th></tr>`+
-      tests.map(t=>`<tr>
-        <td>${t.Tevap_C!=null?esc(fmt(t.Tevap_C))+" °C":"—"}</td>
-        <td>${t.Tcond_C!=null?esc(fmt(t.Tcond_C))+" °C":"—"}</td>
-        <td>${t.Treturn_C!=null?esc(fmt(t.Treturn_C))+" °C":"—"}</td>
-        <td>${t.Tliquid_C!=null?esc(fmt(t.Tliquid_C))+" °C":"—"}</td>
-        <td>${t.ambient_C!=null?esc(fmt(t.ambient_C))+" °C":"—"}</td>
-      </tr>`).join("")+
-      `</table>`
-    : "Sin puntos ASHRAE estructurados en la respuesta.";
-
-  const conflicts=Array.isArray(d.conflicts)?d.conflicts:[];
-  document.getElementById("conflicts").innerHTML=conflicts.length
-    ? conflicts.map(x=>`<div class="alert warn">⚠ ${esc(x)}</div>`).join("")
-    : `<div class="alert ok">No se registraron conflictos entre las fuentes recuperadas.</div>`;
-
-  document.getElementById("summary").textContent=d.summary||"Sin resumen.";
-  document.getElementById("testConditions").textContent="Condiciones de prueba: "+(d.test_conditions||"No publicadas.");
-
-  const sources=Array.isArray(d.sources)?d.sources:[];
-  document.getElementById("sources").innerHTML=sources.length
-    ? sources.map(s=>`
-      <div>
-        <span>${esc(s.name||"Fuente")}${s.type?` <span class="tag">${esc(s.type)}</span>`:""}</span>
-        ${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Abrir ↗</a>`:""}
-      </div>
-    `).join("")
-    : `<div class="mini">No se recuperaron fuentes navegables.</div>`;
-
-  document.getElementById("empty").classList.add("hidden");
-  document.getElementById("result").classList.remove("hidden");
-
-  setStatus(fromLocal ? "Ficha local mostrada · API no disponible" : "Búsqueda web completada",fromLocal?"warn":"ok");
-}
-
-async function callSearch(payload){
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),70000);
-
+async function checkHealth(){
   try{
-    const response=await fetch(SEARCH_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(payload),
-      signal:controller.signal
-    });
-
-    const text=await response.text();
-    let json;
-    try{json=JSON.parse(text)}catch(e){
-      throw new Error("El backend devolvió una respuesta que no es JSON.");
-    }
-
-    if(!response.ok || !json.ok){
-      throw new Error(json.error||`Error HTTP ${response.status}`);
-    }
-
-    if(!json.data)throw new Error("El backend respondió sin datos.");
-    return json.data;
-  }finally{
-    clearTimeout(timer);
-  }
-}
-
-async function searchModel(query){
-  const q=String(query||"").trim();
-  if(!q)return;
-
-  const requestId=++currentRequest;
-  saveHistory(q);
-  showLoading("Buscando modelo en fuentes web…");
-  setStatus("Consultando Render → Gemini…");
-  document.getElementById("go").disabled=true;
-
-  try{
-    const data=await callSearch({
-      mode:"model",
-      query:q,
-      requested_model:q
-    });
-    if(requestId!==currentRequest)return;
-
-    if(!data.found){
-      showError(data.summary||"No se encontró una ficha suficientemente confiable.",null);
-      setStatus("Sin coincidencia confiable","warn");
-      return;
-    }
-
-    render(data,false);
-  }catch(err){
-    if(requestId!==currentRequest)return;
-    const key=q.toUpperCase();
-    if(db[key]){
-      showError(`La búsqueda web falló: ${err.message}`,db[key]);
-      setStatus("API con error · existe ficha local","warn");
-    }else{
-      showError(err.name==="AbortError" ? "La consulta tardó demasiado." : err.message,null);
-      setStatus("Error de API","bad");
-    }
-  }finally{
-    document.getElementById("go").disabled=false;
-  }
-}
-
-async function searchSpecs(){
-  const payload={
-    mode:"specifications",
-    query:[
-      document.getElementById("ref").value,
-      document.getElementById("app").value,
-      document.getElementById("cap").value ? document.getElementById("cap").value+" BTU/h" : "",
-      document.getElementById("volt").value,
-      document.getElementById("te").value ? "Tevap "+document.getElementById("te").value+" °C" : "",
-      document.getElementById("tc").value ? "Tcond "+document.getElementById("tc").value+" °C" : ""
-    ].filter(Boolean).join(" · "),
-    refrigerant:document.getElementById("ref").value,
-    application:document.getElementById("app").value,
-    capacity_BTUh:num(document.getElementById("cap").value),
-    voltage:document.getElementById("volt").value,
-    Tevap_C:num(document.getElementById("te").value),
-    Tcond_C:num(document.getElementById("tc").value)
-  };
-
-  if(!payload.query){
-    setStatus("Introduzca al menos una característica","warn");
-    return;
-  }
-
-  saveHistory(payload.query);
-  showLoading("Buscando compresores compatibles por especificaciones…");
-  setStatus("Consultando Render → Gemini…");
-  document.getElementById("specGo").disabled=true;
-
-  try{
-    const data=await callSearch(payload);
-    if(data.found)render(data,false);
-    else{
-      showError(data.summary||"No se encontró un compresor con suficiente evidencia.",null);
-      setStatus("Sin coincidencia confiable","warn");
-    }
-  }catch(err){
-    showError(err.name==="AbortError" ? "La consulta tardó demasiado." : err.message,null);
-    setStatus("Error de API","bad");
-  }finally{
-    document.getElementById("specGo").disabled=false;
-  }
-}
-
-async function testApi(){
-  setStatus("Probando API…");
-  try{
-    const r=await fetch(HEALTH_URL,{cache:"no-store"});
-    const j=await r.json();
-    if(!r.ok||!j.ok)throw new Error("Health check no válido.");
-    setStatus(`API OK · v${j.version} · ${j.model}`, "ok");
+    const r=await fetch(HEALTH);
+    const d=await r.json();
+    $("health").textContent=d.ok ? "Backend conectado" : "Backend con problemas";
+    $("health").className="status "+(d.ok?"ok":"bad");
+    $("provider").textContent=`Búsqueda: ${d.search_provider || "—"} · Gemini: ${d.gemini_model || "—"}`;
   }catch(e){
-    setStatus("No se pudo contactar la API","bad");
+    $("health").textContent="Backend no disponible";
+    $("health").className="status bad";
+    $("provider").textContent="Proveedor: —";
   }
 }
 
-document.querySelectorAll(".tab").forEach(b=>{
-  b.onclick=()=>activateTab(b.dataset.tab);
+async function search(){
+  const model=val("model");
+  if(!model){setMessage("Introduce el código/modelo del compresor.","bad");$("model").focus();return}
+  $("searchBtn").disabled=true;
+  setMessage("Buscando automáticamente en la web…");
+  ["refsCard","recordCard","envelopeCard","conflictsCard","sourcesCard"].forEach(id=>$(id).classList.add("hidden"));
+  try{
+    const payload={
+      mode:"model",
+      query:model,
+      requested_model:model,
+      refrigerant:val("refrigerant"),
+      application:val("application"),
+      capacity_BTUh:val("capacity"),
+      voltage:val("voltage"),
+      Tevap_C:val("tevap"),
+      Tcond_C:val("tcond")
+    };
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+    renderReferences(d.references || []);
+    if(d.record) renderRecord(d.record);
+    if(d.envelope) renderEnvelope(d.envelope);
+    renderConflicts(d.conflicts);
+    renderSources(d.sources);
+    saveHistory(model,(d.references||[]).length);
+    setMessage(`Búsqueda completada: ${(d.references||[]).length} referencias encontradas.`);
+  }catch(e){
+    setMessage("Error: "+e.message,"bad");
+  }finally{
+    $("searchBtn").disabled=false;
+  }
+}
+
+$("searchBtn").addEventListener("click",search);
+$("model").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
+$("clearBtn").addEventListener("click",()=>{
+  ["model","refrigerant","capacity","voltage","tevap","tcond"].forEach(id=>$(id).value="");
+  $("application").value="";
+  ["refsCard","recordCard","envelopeCard","conflictsCard","sourcesCard"].forEach(id=>$(id).classList.add("hidden"));
+  setMessage("");
 });
-
-document.getElementById("go").onclick=()=>searchModel(document.getElementById("q").value);
-document.getElementById("q").onkeydown=e=>{
-  if(e.key==="Enter")searchModel(e.target.value);
-};
-document.getElementById("specGo").onclick=searchSpecs;
-document.getElementById("testApi").onclick=testApi;
-
-document.getElementById("clearHist").onclick=()=>{
-  history=[];
-  localStorage.removeItem("ceHistV02");
-  renderHist();
-};
-
-document.getElementById("theme").onclick=()=>{
+$("themeBtn").addEventListener("click",()=>{
   document.body.classList.toggle("epaper");
-  const e=document.body.classList.contains("epaper");
-  localStorage.setItem("ceThemeV02",e?"epaper":"dark");
-  document.getElementById("theme").textContent=e?"Oscuro":"ePaper";
-};
-
-document.getElementById("photoIn").onchange=e=>{
-  const file=e.target.files?.[0];
-  const img=document.getElementById("photoPreview");
-  if(!file){
-    img.classList.add("hidden");
-    img.removeAttribute("src");
-    return;
-  }
-  const url=URL.createObjectURL(file);
-  img.src=url;
-  img.classList.remove("hidden");
-};
-
-document.getElementById("clearPhoto").onclick=()=>{
-  document.getElementById("photoIn").value="";
-  const img=document.getElementById("photoPreview");
-  img.classList.add("hidden");
-  img.removeAttribute("src");
-};
-
-if(localStorage.getItem("ceThemeV02")==="epaper"){
-  document.body.classList.add("epaper");
-  document.getElementById("theme").textContent="Oscuro";
-}
-
-renderHist();
-testApi();
+  $("themeBtn").textContent=document.body.classList.contains("epaper")?"Oscuro":"ePaper";
+  localStorage.setItem("hvacr_v03_theme",document.body.classList.contains("epaper")?"epaper":"dark");
+});
+if(localStorage.getItem("hvacr_v03_theme")==="epaper"){document.body.classList.add("epaper");$("themeBtn").textContent="Oscuro"}
+renderHistory();checkHealth();
 </script>
 </body>
 </html>

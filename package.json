@@ -1,15 +1,12 @@
 {
-  "name": "hvacr-compressor-engine-backend",
-  "version": "0.1.0",
+  "name": "hvacr-compressor-engine-v0-3-auto-search",
+  "version": "0.3.0",
   "private": true,
-  "main": "server_v3_1.js",
+  "description": "HVAC/R Compressor Engine with automatic Tavily web search and optional Gemini analysis.",
   "scripts": {
-    "start": "node server_v3_1.js"
+    "start": "node server_v0_3_auto.js"
   },
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.7"
   }
 }
