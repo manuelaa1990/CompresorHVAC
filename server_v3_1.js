@@ -5,29 +5,110 @@ const API_KEY=process.env.GEMINI_API_KEY;
 const MODEL=process.env.GEMINI_MODEL||"gemini-2.5-flash";
 
 const schema={
- type:"object",
- properties:{
-  found:{type:"boolean"},summary:{type:"string"},confidence:{type:"string"},
-  manufacturer:{type:"string"},model:{type:"string"},refrigerant:{type:"string"},
-  type:{type:"string"},voltage:{type:"string"},frequency:{type:"string"},phase:{type:"string"},
-  capacity_kW:{type:["number","null"]},capacity_BTUh:{type:["number","null"]},
-  displacement_cm3_rev:{type:["number","null"]},RLA_A:{type:["number","null"]},LRA_A:{type:["number","null"]},
-  power_kW:{type:["number","null"]},COP:{type:["number","null"]},oil:{type:"string"},capacitor:{type:"string"},
-  max_discharge_C:{type:["number","null"]},application_envelope:{type:"string"},test_conditions:{type:"string"},
-  conflicts:{type:"array",items:{type:"string"}},
-  envelope:{type:"object",properties:{
-   application_class:{type:"string"},evap_min_C:{type:["number","null"]},evap_max_C:{type:["number","null"]},
-   cond_min_C:{type:["number","null"]},cond_max_C:{type:["number","null"]},
-   max_discharge_C:{type:["number","null"]},max_pressure_ratio:{type:["number","null"]},
-   notes:{type:"string"},points:{type:"array",items:{type:"object"}},ashrae_tests:{type:"array",items:{type:"object"}}
-  },required:["application_class","evap_min_C","evap_max_C","cond_min_C","cond_max_C","max_discharge_C","max_pressure_ratio","notes","points","ashrae_tests"]},
-  sources:{type:"array",items:{type:"object",properties:{name:{type:"string"},url:{type:"string"},type:{type:"string"}},required:["name","url","type"]}}
- },
- required:["found","summary","confidence","manufacturer","model","refrigerant","type","voltage","frequency","phase","capacity_kW","capacity_BTUh","displacement_cm3_rev","RLA_A","LRA_A","power_kW","COP","oil","capacitor","max_discharge_C","application_envelope","test_conditions","conflicts","envelope","sources"]
+  type:"object",
+  properties:{
+    found:{type:"boolean"},
+    summary:{type:"string"},
+    confidence:{type:"string"},
+    manufacturer:{type:"string"},
+    model:{type:"string"},
+    refrigerant:{type:"string"},
+    type:{type:"string"},
+    voltage:{type:"string"},
+    frequency:{type:"string"},
+    phase:{type:"string"},
+
+    // Los campos numericos se devuelven como STRING para evitar
+    // incompatibilidades del responseSchema REST con tipos nullable.
+    capacity_kW:{type:"string"},
+    capacity_BTUh:{type:"string"},
+    displacement_cm3_rev:{type:"string"},
+    RLA_A:{type:"string"},
+    LRA_A:{type:"string"},
+    power_kW:{type:"string"},
+    COP:{type:"string"},
+    oil:{type:"string"},
+    capacitor:{type:"string"},
+    max_discharge_C:{type:"string"},
+    application_envelope:{type:"string"},
+    test_conditions:{type:"string"},
+
+    conflicts:{
+      type:"array",
+      items:{type:"string"}
+    },
+
+    envelope:{
+      type:"object",
+      properties:{
+        application_class:{type:"string"},
+        evap_min_C:{type:"string"},
+        evap_max_C:{type:"string"},
+        cond_min_C:{type:"string"},
+        cond_max_C:{type:"string"},
+        max_discharge_C:{type:"string"},
+        max_pressure_ratio:{type:"string"},
+        notes:{type:"string"},
+
+        points:{
+          type:"array",
+          items:{
+            type:"object",
+            properties:{
+              Tevap_C:{type:"string"},
+              Tcond_C:{type:"string"},
+              note:{type:"string"}
+            },
+            required:["Tevap_C","Tcond_C","note"]
+          }
+        },
+
+        ashrae_tests:{
+          type:"array",
+          items:{
+            type:"object",
+            properties:{
+              Tevap_C:{type:"string"},
+              Tcond_C:{type:"string"},
+              Treturn_C:{type:"string"},
+              Tliquid_C:{type:"string"},
+              ambient_C:{type:"string"},
+              note:{type:"string"}
+            },
+            required:["Tevap_C","Tcond_C","Treturn_C","Tliquid_C","ambient_C","note"]
+          }
+        }
+      },
+      required:[
+        "application_class","evap_min_C","evap_max_C","cond_min_C","cond_max_C",
+        "max_discharge_C","max_pressure_ratio","notes","points","ashrae_tests"
+      ]
+    },
+
+    sources:{
+      type:"array",
+      items:{
+        type:"object",
+        properties:{
+          name:{type:"string"},
+          url:{type:"string"},
+          type:{type:"string"}
+        },
+        required:["name","url","type"]
+      }
+    }
+  },
+  required:[
+    "found","summary","confidence","manufacturer","model","refrigerant","type",
+    "voltage","frequency","phase","capacity_kW","capacity_BTUh",
+    "displacement_cm3_rev","RLA_A","LRA_A","power_kW","COP","oil","capacitor",
+    "max_discharge_C","application_envelope","test_conditions","conflicts",
+    "envelope","sources"
+  ]
 };
 
 const instructions=`Eres investigador tecnico HVAC/R. Identifica compresores y recupera datos publicados mediante busqueda web.
-No inventes datos. Prioriza fabricante oficial, luego distribuidores tecnicos.
+No inventes datos. Prioriza fabricante oficial, luego distribuidores tecnicos. Para cualquier dato numerico no publicado o no confiable, devuelve una cadena vacia "" (no cero y no null).
 Busca modelo, fabricante, refrigerante, tipo, voltaje, frecuencia, fase, capacidad, potencia, COP,
 desplazamiento, RLA, LRA, aceite, capacitor, aplicacion LBP/MBP/HBP/HMBP/CBP/A/C,
 rango publicado de evaporacion y condensacion, temperatura maxima de descarga y relacion de presion
