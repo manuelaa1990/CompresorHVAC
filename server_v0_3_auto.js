@@ -127,7 +127,7 @@ ${context}`;
 async function geminiAnalyze(p, refs){
   if(!GEMINI_API_KEY || !refs.length) return null;
   const body={
-    contents:[{parts:[{text:promptForGemini(p,refs)]}]}],
+    contents:[{parts:[{text:promptForGemini(p,refs)}]}],
     generationConfig:{
       responseMimeType:"application/json"
     }
